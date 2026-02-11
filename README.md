@@ -107,8 +107,6 @@ SERPER_API_KEY=your_serper_api_key
 streamlit run main.py
 ```
 
----
-
 ## Project Structure
 
 ```
@@ -125,7 +123,6 @@ Product-Recommendation-System/
 │
 └── README.md               # This file
 ```
----
 
 ## Architecture
 
