@@ -1,12 +1,10 @@
 """
-Multi-Agent Product Recommendation System
-多智能体产品推荐系统
+Multi-Agent LLM Product Recommendation
 
 This application uses OpenAI's GPT models with CrewAI framework to provide:
-本应用使用OpenAI的GPT模型和CrewAI框架提供：
-1. Product recommendations based on user queries 基于用户查询的产品推荐
-2. Image analysis and product identification 图像分析和产品识别
-3. Web search for product information 产品信息的网络搜索
+1. Product recommendations based on user queries
+2. Image analysis and product identification
+3. Web search for product information
 """
 
 import streamlit as st
@@ -19,39 +17,38 @@ import os
 import base64
 from io import BytesIO
 
-# 加载环境变量 Load environment variables
+# Load environment variables
 load_dotenv()
 
 # ========================================
-# Configuration 配置
+# Configuration
 # ========================================
 
-# 国家和货币映射 Country-Currency mapping
+# Country-Currency mapping
 COUNTRY_CURRENCY = {
     "Eurozone": "EUR",
     "China": "CNY",
 }
 
-# 从环境变量获取API密钥 Get API keys from environment
+# Get API keys from environment
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 SERPER_API_KEY = os.getenv("SERPER_API_KEY")
 
-# 设置Serper API密钥 Set Serper API key
+# Set Serper API key
 if SERPER_API_KEY:
     os.environ["SERPER_API_KEY"] = SERPER_API_KEY
 
-# 验证OpenAI API密钥 Validate OpenAI API key
+# Validate OpenAI API key
 if not OPENAI_API_KEY:
     st.error("❌ OPENAI_API_KEY not found! Please add it to your .env file.")
     st.stop()
 
 # ========================================
-# Helper Functions 辅助函数
+# Helper Functions
 # ========================================
 
 def image_to_base64(image):
     """
-    将PIL图像转换为base64编码字符串
     Convert PIL Image to base64 encoded string for API transmission
     
     Args:
@@ -68,7 +65,6 @@ def image_to_base64(image):
 
 def create_llm(model_name="gpt-4o-mini", temperature=0.7):
     """
-    创建配置好的OpenAI LLM实例
     Create configured OpenAI LLM instance
     
     Args:
@@ -88,7 +84,6 @@ def create_llm(model_name="gpt-4o-mini", temperature=0.7):
 
 def analyze_image_with_vision(image, prompt):
     """
-    使用GPT-4 Vision分析图像
     Analyze image using GPT-4 Vision API
     
     Args:
@@ -100,17 +95,17 @@ def analyze_image_with_vision(image, prompt):
     """
     from langchain_core.messages import HumanMessage
     
-    # 使用GPT-4o进行视觉分析 Use GPT-4o for vision analysis
+    # Use GPT-4o for vision analysis
     llm = ChatOpenAI(
         model="gpt-4o",
         api_key=OPENAI_API_KEY,
         max_tokens=1000
     )
     
-    # 转换图像为base64 Convert image to base64
+    # Convert image to base64
     image_base64 = image_to_base64(image)
     
-    # 构建消息 Build message with image
+    # Build message with image
     message = HumanMessage(
         content=[
             {"type": "text", "text": prompt},
@@ -118,13 +113,13 @@ def analyze_image_with_vision(image, prompt):
         ]
     )
     
-    # 调用API Get response from API
+    # Get response from API
     response = llm.invoke([message])
     return response.content
 
 
 # ========================================
-# Streamlit UI Setup 界面设置
+# Streamlit UI Setup
 # ========================================
 
 st.set_page_config(
@@ -133,10 +128,10 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("🛍️ AI-Powered Product Recommendation System")
+st.title("🛍️ AI-Powered Product Recommendation")
 st.markdown("### Intelligent Shopping Assistant with OpenAI GPT-4")
 
-# 侧边栏配置 Sidebar configuration
+# Sidebar configuration
 st.sidebar.header("⚙️ Settings")
 
 selected_country = st.sidebar.selectbox(
@@ -154,14 +149,13 @@ model_type = st.sidebar.selectbox(
     )
 )
 
-# 显示当前配置 Display current settings
+# Display current settings
 st.sidebar.markdown("---")
 st.sidebar.markdown(f"**Region:** {selected_country}")
 st.sidebar.markdown(f"**Currency:** {currency}")
 
 # ========================================
 # Model 1: Product Recommendation
-# 模型1：产品推荐
 # ========================================
 
 if model_type == "Product Recommendation":
@@ -169,13 +163,13 @@ if model_type == "Product Recommendation":
     st.subheader("💡 Product Recommendation")
     st.write("Tell us what you're looking for, and we'll recommend the best products.")
     
-    # 创建LLM实例 Create LLM instance
+    # Create LLM instance
     llm = create_llm(model_name="gpt-4o-mini", temperature=0.7)
     
-    # 初始化工具 Initialize tools
+    # Initialize tools
     serper_tool = SerperDevTool()
     
-    # 创建产品推荐智能体 Create recommendation agent
+    # Create recommendation agent
     recommendation_agent = Agent(
         role="Product Recommendation Specialist",
         goal="Provide personalized product recommendations based on user preferences and market trends.",
@@ -189,16 +183,16 @@ if model_type == "Product Recommendation":
         allow_delegation=True
     )
     
-    # 用户输入 User input
+    # User input
     text_prompt = st.text_input(
         "What product are you looking for?",
-        placeholder="Example: I need a laptop for video editing under 1500 EUR"
+        placeholder="Example: I need a laptop for designer under 1500 EUR"
     )
     
     if text_prompt:
         st.write(f"**Your Query:** {text_prompt}")
         
-        # 创建推荐任务 Create recommendation task
+        # Create recommendation task
         recommendation_task = Task(
             description=f"""
             Provide comprehensive product recommendations for: "{text_prompt}"
@@ -219,7 +213,7 @@ if model_type == "Product Recommendation":
             expected_output="Detailed product recommendations with specifications, prices, purchase links, and explanations."
         )
         
-        # 创建执行团队 Create execution crew
+        # Create execution crew
         crew = Crew(
             agents=[recommendation_agent],
             tasks=[recommendation_task],
@@ -227,13 +221,13 @@ if model_type == "Product Recommendation":
             verbose=True
         )
         
-        # 执行任务 Execute task
+        # Execute task
         with st.spinner("🤖 AI is analyzing and searching for the best products..."):
             try:
                 result = crew.kickoff()
                 result_str = str(result)
                 
-                # 显示结果 Display results
+                # Display results
                 st.write("---")
                 st.subheader("✅ Recommendations")
                 st.write(result_str)
@@ -245,7 +239,6 @@ if model_type == "Product Recommendation":
 
 # ========================================
 # Model 2: Image Question Answering
-# 模型2：图像问答
 # ========================================
 
 elif model_type == "Image Question Answering":
@@ -253,18 +246,18 @@ elif model_type == "Image Question Answering":
     st.subheader("📸 Image Analysis & Product Recognition")
     st.write("Upload a product image and ask questions about it.")
     
-    # 文件上传 File uploader
+    # File uploader
     uploaded_file = st.file_uploader(
         "Upload an image",
         type=["png", "jpg", "jpeg"]
     )
     
     if uploaded_file is not None:
-        # 显示上传的图像 Display uploaded image
+        # Display uploaded image
         image = Image.open(uploaded_file)
         st.image(image, caption="Uploaded Image", use_column_width=True)
         
-        # 使用GPT-4 Vision分析图像 Analyze image with GPT-4 Vision
+        # Analyze image with GPT-4 Vision
         with st.spinner("🔍 Analyzing image with GPT-4 Vision..."):
             try:
                 analysis_prompt = """
@@ -278,16 +271,16 @@ elif model_type == "Image Question Answering":
                 """
                 image_analysis = analyze_image_with_vision(image, analysis_prompt)
                 
-                # 显示分析结果 Display analysis
+                # Display analysis
                 st.write("---")
                 st.subheader("🔍 Image Analysis Result")
                 st.write(image_analysis)
                 
-                # 创建LLM和工具 Create LLM and tools
+                # Create LLM and tools
                 llm = create_llm(model_name="gpt-4o", temperature=0.7)
                 serper_tool = SerperDevTool()
                 
-                # 创建图像分析智能体 Create image analysis agent
+                # Create image analysis agent
                 image_agent = Agent(
                     role="Image Analysis and Product Recommendation Expert",
                     goal="Answer questions about products in images and provide purchase recommendations.",
@@ -304,7 +297,7 @@ elif model_type == "Image Question Answering":
                     allow_delegation=True
                 )
                 
-                # 用户问题输入 User question input
+                # User question input
                 st.write("---")
                 questions = st.text_input(
                     "Ask questions about the image",
@@ -312,7 +305,7 @@ elif model_type == "Image Question Answering":
                 )
                 
                 if questions:
-                    # 创建问答任务 Create Q&A task
+                    # Create Q&A task
                     qa_task = Task(
                         description=f"""
                         Based on the image analysis, answer the user's question: "{questions}"
@@ -332,7 +325,7 @@ elif model_type == "Image Question Answering":
                         expected_output="Comprehensive answer with product recommendations, links, and prices."
                     )
                     
-                    # 创建执行团队 Create crew
+                    # Create crew
                     crew = Crew(
                         agents=[image_agent],
                         tasks=[qa_task],
@@ -340,13 +333,13 @@ elif model_type == "Image Question Answering":
                         verbose=True
                     )
                     
-                    # 执行任务 Execute
+                    # Execute
                     with st.spinner("🤖 AI is working on your question..."):
                         try:
                             result = crew.kickoff()
                             result_str = str(result)
                             
-                            # 显示结果 Display result
+                            # Display result
                             st.write("---")
                             st.subheader("✅ Answer")
                             st.write(result_str)
@@ -361,7 +354,6 @@ elif model_type == "Image Question Answering":
 
 # ========================================
 # Model 3: Web Search
-# 模型3：网络搜索
 # ========================================
 
 elif model_type == "Web Search":
@@ -369,11 +361,11 @@ elif model_type == "Web Search":
     st.subheader("🔍 Web Search")
     st.write("Search the web for product information, reviews, and comparisons.")
     
-    # 创建LLM和工具 Create LLM and tools
+    # Create LLM and tools
     llm = create_llm(model_name="gpt-4o-mini", temperature=0.3)
     serper_tool = SerperDevTool()
     
-    # 创建搜索智能体 Create search agent
+    # Create search agent
     search_agent = Agent(
         role="Web Search Specialist",
         goal="Search and gather comprehensive product information from the web.",
@@ -391,7 +383,7 @@ elif model_type == "Web Search":
         allow_delegation=True
     )
     
-    # 用户搜索输入 User search input
+    # User search input
     search_query = st.text_input(
         "Enter your search query",
         placeholder="Example: Best wireless headphones 2025"
@@ -400,7 +392,7 @@ elif model_type == "Web Search":
     if search_query:
         st.write(f"**Searching for:** {search_query}")
         
-        # 创建搜索任务 Create search task
+        # Create search task
         search_task = Task(
             description=f"""
             Search for comprehensive information about: "{search_query}"
@@ -421,7 +413,7 @@ elif model_type == "Web Search":
             expected_output="Comprehensive search results with detailed information, sources, and relevant links."
         )
         
-        # 创建执行团队 Create crew
+        # Create crew
         crew = Crew(
             agents=[search_agent],
             tasks=[search_task],
@@ -429,13 +421,13 @@ elif model_type == "Web Search":
             verbose=True
         )
         
-        # 执行搜索 Execute search
+        # Execute search
         with st.spinner("🔍 Searching the web..."):
             try:
                 result = crew.kickoff()
                 result_str = str(result)
                 
-                # 显示结果 Display results
+                # Display results
                 st.write("---")
                 st.subheader("✅ Search Results")
                 st.write(result_str)
@@ -446,7 +438,7 @@ elif model_type == "Web Search":
 
 
 # ========================================
-# Footer 页脚
+# Footer 
 # ========================================
 
 st.write("---")
