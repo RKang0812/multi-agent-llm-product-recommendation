@@ -1,9 +1,7 @@
 """
 Image Question Answering Agent
-图像问答智能体
 
 Standalone agent for image analysis and product identification using OpenAI GPT-4 Vision.
-使用OpenAI GPT-4 Vision的独立图像分析和产品识别智能体。
 """
 
 import streamlit as st
@@ -17,21 +15,20 @@ import os
 import base64
 from io import BytesIO
 
-# 加载环境变量 Load environment variables
+# Load environment variables
 load_dotenv()
 
-# 获取API密钥 Get API keys
+# Get API keys
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 SERPER_API_KEY = os.getenv("SERPER_API_KEY")
 
-# 设置Serper密钥 Set Serper key
+# Set Serper key
 if SERPER_API_KEY:
     os.environ["SERPER_API_KEY"] = SERPER_API_KEY
 
 
 def image_to_base64(image):
     """
-    将PIL图像转换为base64编码
     Convert PIL Image to base64 encoding
     
     Args:
@@ -48,7 +45,6 @@ def image_to_base64(image):
 
 def analyze_image(image, prompt):
     """
-    使用GPT-4 Vision分析图像
     Analyze image using GPT-4 Vision
     
     Args:
@@ -64,10 +60,10 @@ def analyze_image(image, prompt):
         max_tokens=1000
     )
     
-    # 转换图像 Convert image
+    # Convert image
     image_base64 = image_to_base64(image)
     
-    # 构建消息 Build message
+    # Build message
     message = HumanMessage(
         content=[
             {"type": "text", "text": prompt},
@@ -75,33 +71,33 @@ def analyze_image(image, prompt):
         ]
     )
     
-    # 获取响应 Get response
+    # Get response
     response = llm.invoke([message])
     return response.content
 
 
 def main():
-    """主函数 Main function"""
+    """Main function"""
     st.title("📸 Image Question Answering Agent")
     st.write("Upload an image and ask questions about products in it")
     
-    # 验证API密钥 Validate API key
+    # Validate API key
     if not OPENAI_API_KEY:
         st.error("❌ OPENAI_API_KEY not found! Please add it to your .env file.")
         return
     
-    # 文件上传 File uploader
+    # File uploader
     uploaded_file = st.file_uploader(
         "Upload a product image",
         type=["png", "jpg", "jpeg"]
     )
     
     if uploaded_file is not None:
-        # 显示图像 Display image
+        # Display image
         image = Image.open(uploaded_file)
         st.image(image, caption="Uploaded Image", use_column_width=True)
         
-        # 分析图像 Analyze image
+        # Analyze image
         with st.spinner("🔍 Analyzing image with GPT-4 Vision..."):
             try:
                 analysis_prompt = """
@@ -115,12 +111,12 @@ def main():
                 
                 image_analysis = analyze_image(image, analysis_prompt)
                 
-                # 显示分析结果 Display analysis
+                # Display analysis
                 st.write("---")
                 st.write("### 🔍 Image Analysis")
                 st.write(image_analysis)
                 
-                # 创建LLM和工具 Create LLM and tools
+                # Create LLM and tools
                 llm = ChatOpenAI(
                     model="gpt-4o",
                     temperature=0.7,
@@ -130,7 +126,7 @@ def main():
                 
                 serper_tool = SerperDevTool()
                 
-                # 创建智能体 Create agent
+                # Create agent
                 image_agent = Agent(
                     role="Image Analysis and Recommendation Expert",
                     goal="Answer questions about products in images and provide recommendations",
@@ -146,7 +142,7 @@ def main():
                     allow_delegation=True
                 )
                 
-                # 用户问题 User questions
+                # User questions
                 st.write("---")
                 questions = st.text_input(
                     "Ask questions about the image",
@@ -154,7 +150,7 @@ def main():
                 )
                 
                 if questions:
-                    # 创建任务 Create task
+                    # Create task
                     qa_task = Task(
                         description=f"""
                         Based on the image analysis, answer: "{questions}"
@@ -173,7 +169,7 @@ def main():
                         expected_output="Comprehensive answer with recommendations and purchase information."
                     )
                     
-                    # 创建团队 Create crew
+                    # Create crew
                     crew = Crew(
                         agents=[image_agent],
                         tasks=[qa_task],
@@ -181,12 +177,12 @@ def main():
                         verbose=True
                     )
                     
-                    # 执行 Execute
+                    # Execute
                     with st.spinner("🤖 AI is working on your question..."):
                         try:
                             result = crew.kickoff()
                             
-                            # 显示结果 Display result
+                            # Display result
                             st.write("---")
                             st.write("### ✅ Answer")
                             st.write(str(result))
