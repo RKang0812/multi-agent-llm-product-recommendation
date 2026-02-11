@@ -1,9 +1,7 @@
 """
 Web Search Agent
-网络搜索智能体
 
 Standalone agent for web search and product information gathering using OpenAI.
-使用OpenAI的独立网络搜索和产品信息收集智能体。
 """
 
 import streamlit as st
@@ -13,29 +11,29 @@ from crewai_tools import SerperDevTool
 from crewai import Agent, Task, Crew, Process
 from dotenv import load_dotenv
 
-# 加载环境变量 Load environment variables
+# Load environment variables
 load_dotenv()
 
-# 获取API密钥 Get API keys
+# Get API keys
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 SERPER_API_KEY = os.getenv("SERPER_API_KEY")
 
-# 设置Serper密钥 Set Serper key
+# Set Serper key
 if SERPER_API_KEY:
     os.environ["SERPER_API_KEY"] = SERPER_API_KEY
 
 
 def main():
-    """主函数 Main function"""
+    """Main function"""
     st.title("🔍 Web Search Agent")
     st.write("Search the web for product information, reviews, and comparisons")
     
-    # 验证API密钥 Validate API key
+    # Validate API key
     if not OPENAI_API_KEY:
         st.error("❌ OPENAI_API_KEY not found! Please add it to your .env file.")
         return
     
-    # 创建LLM实例 Create LLM instance
+    # Create LLM instance
     llm = ChatOpenAI(
         model="gpt-4o-mini",
         temperature=0.3,
@@ -43,10 +41,10 @@ def main():
         max_tokens=2000
     )
     
-    # 初始化搜索工具 Initialize search tool
+    # Initialize search tool
     serper_tool = SerperDevTool()
     
-    # 创建搜索智能体 Create search agent
+    # Create search agent
     search_agent = Agent(
         role="Web Search Specialist",
         goal="Search and gather comprehensive information from the web",
@@ -59,7 +57,7 @@ def main():
         allow_delegation=True
     )
     
-    # 用户输入 User input
+    # User input
     st.write("### Enter Your Search Query")
     search_query = st.text_input(
         "What do you want to search for?",
@@ -69,7 +67,7 @@ def main():
     if search_query:
         st.write(f"**Searching for:** {search_query}")
         
-        # 创建搜索任务 Create search task
+        # Create search task
         search_task = Task(
             description=f"""
             Search for comprehensive information about: "{search_query}"
@@ -90,7 +88,7 @@ def main():
             expected_output="Comprehensive search results with detailed information, sources, and links."
         )
         
-        # 创建执行团队 Create crew
+        # Create crew
         crew = Crew(
             tasks=[search_task],
             agents=[search_agent],
@@ -98,12 +96,12 @@ def main():
             verbose=True
         )
         
-        # 执行搜索 Execute search
+        # Execute search
         with st.spinner("🔍 Searching the web..."):
             try:
                 result = crew.kickoff()
                 
-                # 显示结果 Display results
+                # Display results
                 st.write("---")
                 st.write("### ✅ Search Results")
                 st.write(str(result))
