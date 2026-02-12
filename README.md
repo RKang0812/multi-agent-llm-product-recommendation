@@ -87,7 +87,7 @@ Structured Output
 ### Create Virtual Environment
 
 ```bash
-python -m venv venv
+python3.11 -m venv venv
 source venv/bin/activate  # macOS/Linux
 venv\Scripts\activate     # Windows
 ```
@@ -104,8 +104,11 @@ SERPER_API_KEY=your_serper_api_key
 ### Run
 
 ```bash
+python -m pip install --upgrade pip
+pip install -r requirements.txt
 streamlit run main.py
 ```
+
 
 ## Project Structure
 
