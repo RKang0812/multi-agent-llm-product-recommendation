@@ -1,9 +1,9 @@
 # Multi-Agent LLM Application for Product Recommendation
 
 A structured LLM application demonstrating multi-agent orchestration, tool-augmented reasoning, and multimodal processing.
-
 This project explores how large language models can be organized into specialized agents to collaboratively solve real-world product recommendation tasks.
 
+[▶ Watch the Demo](demo.mp4)
 
 ## Overview
 
